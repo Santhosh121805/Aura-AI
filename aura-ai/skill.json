@@ -1,0 +1,40 @@
+{
+  "name": "AURA",
+  "display_name": "AURA — Institutional Rotation Intelligence",
+  "version": "1.0.0",
+  "description": "Multi-agent AI skill that detects institutional RWA flows on BNB Chain (BlackRock BUIDL, Franklin Templeton iBENJI, Ondo Finance) and combines them with CoinMarketCap narrative momentum, Fear & Greed, and macro regime signals to generate backtestable rotation strategy specifications. Powered by 6 specialized intelligence agents and Gemini AI strategy generation.",
+  "author": "Team Data Dragons",
+  "category": "strategy-generation",
+  "tags": ["RWA", "BNB Chain", "institutional-flows", "rotation", "backtesting"],
+  "entry_point": "backend/main.py",
+  "api_endpoint": "/aura/run",
+  "method": "POST",
+  "required_apis": [
+    {"name": "CoinMarketCap Pro API", "env_var": "CMC_API_KEY", "purpose": "Narrative trends, Fear & Greed, category data"},
+    {"name": "Google Gemini API", "env_var": "GEMINI_API_KEY", "purpose": "Strategy brief and spec generation"},
+    {"name": "DeFiLlama API", "env_var": null, "purpose": "BNB Chain RWA TVL data — free, no key required"},
+    {"name": "PancakeSwap Subgraph", "env_var": null, "purpose": "DEX volume data — free, no key required"}
+  ],
+  "inputs": {
+    "type": "object",
+    "properties": {
+      "user_query": {"type": "string", "description": "Optional context or question from the user", "default": "Generate rotation strategy"}
+    }
+  },
+  "outputs": {
+    "type": "object",
+    "properties": {
+      "status": {"type": "string", "enum": ["trade_signal", "no_trade", "error"]},
+      "plain_english_brief": {"type": "string"},
+      "strategy_spec": {"type": "object", "description": "Backtestable strategy specification"},
+      "confidence_score": {"type": "number", "minimum": 0, "maximum": 100},
+      "regime_label": {"type": "string"}
+    }
+  },
+  "demo_output_example": {
+    "status": "trade_signal",
+    "plain_english_brief": "BlackRock and Franklin Templeton added $80M to BNB Chain RWA positions this week. Narrative momentum for RWA tokens is at 82/100 while Fear & Greed improved to 42. Rotate 20% into ONDO with a weekly rebalance cadence.",
+    "confidence_score": 85,
+    "regime_label": "RWA momentum on BNB Chain"
+  }
+}
