@@ -26,19 +26,19 @@ class StrategyBacktestingAssumptions(BaseModel):
 class StrategySpec(BaseModel):
     """Structured, backtestable strategy specification returned by AURA."""
 
-    active_narrative: str
-    regime: str
-    recommendation: str
-    entry_condition: str
-    exit_condition: str
-    stop_loss: str
-    take_profit: str
-    position_size: str
-    timeframe: str
-    confidence_score: int = Field(ge=0, le=100)
-    asset_universe: list[str]
-    reasoning: str
-    backtesting_assumptions: StrategyBacktestingAssumptions
+    active_narrative: str = ""
+    regime: str = ""
+    recommendation: str = ""
+    entry_condition: str = ""
+    exit_condition: str = ""
+    stop_loss: str = ""
+    take_profit: str = ""
+    position_size: str = "0%"
+    timeframe: str = ""
+    confidence_score: int = Field(default=0, ge=0, le=100)
+    asset_universe: list[str] = Field(default_factory=list)
+    reasoning: str = ""
+    backtesting_assumptions: StrategyBacktestingAssumptions | None = None
 
 
 class AuraResponse(BaseModel):

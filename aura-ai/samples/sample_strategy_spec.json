@@ -1,0 +1,25 @@
+{
+  "active_narrative": "RWA",
+  "regime": "risk-on",
+  "recommendation": "Rotate 20% into ONDO and BUIDL on BNB Chain",
+  "entry_condition": "RWA TVL on BSC > $600M AND Fear & Greed > 50 AND narrative score > 70",
+  "exit_condition": "RWA TVL drops 15% week-over-week OR Fear & Greed falls below 35 OR institutional inflow reverses",
+  "stop_loss": "8% below entry price",
+  "take_profit": "25% above entry price",
+  "position_size": "20%",
+  "timeframe": "Weekly rebalance",
+  "confidence_score": 85,
+  "asset_universe": [
+    "ONDO",
+    "BUIDL",
+    "CFG",
+    "MPL"
+  ],
+  "reasoning": "Strong institutional inflow + improving sentiment + strong narrative momentum = actionable rotation signal.",
+  "backtesting_assumptions": {
+    "data_source": "CoinMarketCap historical OHLCV",
+    "benchmark": "BNB Chain TVL growth",
+    "rebalance_frequency": "weekly",
+    "minimum_liquidity": "$1M daily volume"
+  }
+}
