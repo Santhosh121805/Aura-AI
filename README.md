@@ -10,7 +10,7 @@
 [![Prize Pool](https://img.shields.io/badge/Track%20Prize-%246%2C000-22C55E?style=for-the-badge)](#)
 [![Powered By](https://img.shields.io/badge/Powered%20By-CoinMarketCap%20Agent%20Hub-1652F0?style=for-the-badge)](#)
 [![Chain](https://img.shields.io/badge/Chain-BNB%20Smart%20Chain-F0B90B?style=for-the-badge&logo=binance&logoColor=white)](#)
-[![Built With](https://img.shields.io/badge/Built%20With-Claude%20API-D97757?style=for-the-badge)](#)
+
 
 > *"Every morning, fund managers spend 3 hours across 6 browser tabs trying to figure out where capital is rotating. AURA collapses that into a single 30-second AI call."*
 
