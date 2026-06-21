@@ -1,4 +1,4 @@
-```markdown
+
 # Aura-AI
 **The AI Chief Investment Officer for every crypto investor.**
 
