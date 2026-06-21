@@ -1,6 +1,5 @@
 ```markdown
 # Aura-AI
-
 **The AI Chief Investment Officer for every crypto investor.**
 
 Aura-AI is a CMC Skill, built on the CoinMarketCap Agent Hub and BNB Chain, that turns live market and on-chain data into a single, backtestable trading decision. Six specialized agents read narrative, sentiment, institutional capital flow, and macro regime data in parallel, reach consensus like an investment committee, and output either a high-confidence strategy spec or a recommendation to preserve capital.
