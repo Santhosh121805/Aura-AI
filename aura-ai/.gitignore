@@ -62,3 +62,4 @@ Thumbs.db
 *.key
 *.pem
 secrets.json
+.vercel
