@@ -25,6 +25,7 @@ from backend.agents.strategy_agent import run_strategy_agent
 from backend.data_fetcher import fetch_all_data
 from backend.engine.decision_engine import run_decision_engine
 from backend.engine.strategy_generator import run_strategy_generator
+from backend.executor import execute_strategy_on_chain
 from backend.models import AuraRequest, AuraResponse, ErrorResponse, StrategySpec
 
 app = FastAPI(title=config.APP_NAME, version=config.APP_VERSION)
@@ -244,12 +245,27 @@ async def _stream_pipeline() -> AsyncGenerator[str, None]:
         if decision.get("proceed"):
             yield _sse_event("step", {
                 "step": "strategy_generator",
-                "label": "Gemini Strategy Generator",
-                "detail": "Composing plain-English brief & backtestable spec with Gemini…",
+                "label": "AI Strategy Generator",
+                "detail": "Composing plain-English brief & backtestable spec with AI engine…",
                 "status": "running",
             })
             generated = await run_strategy_generator(signals)
             strategy_spec_data = generated.get("strategy_spec") or {}
+            
+            yield _sse_event("step", {
+                "step": "on_chain_publish",
+                "label": "BOT Chain Testnet",
+                "detail": "Publishing strategy to smart contract...",
+                "status": "running",
+            })
+            tx_hash = execute_strategy_on_chain(strategy_spec_data, generated.get("plain_english_brief") or "")
+            yield _sse_event("step", {
+                "step": "on_chain_publish",
+                "label": "BOT Chain Testnet",
+                "detail": f"Tx Hash: {tx_hash}",
+                "status": "done",
+            })
+
             response = AuraResponse(
                 status="trade_signal",
                 plain_english_brief=generated.get("plain_english_brief") or "AURA fallback strategy generated.",
@@ -259,6 +275,7 @@ async def _stream_pipeline() -> AsyncGenerator[str, None]:
                 timestamp=_utc_now(),
                 all_signals=signals,
                 generated_by_fallback=bool(generated.get("generated_by_fallback")),
+                tx_hash=tx_hash if tx_hash and tx_hash.startswith("0x") else None,
             )
         else:
             response = AuraResponse(
@@ -281,6 +298,7 @@ async def _stream_pipeline() -> AsyncGenerator[str, None]:
             "regime_label": response.regime_label,
             "elapsed_seconds": elapsed,
             "generated_by_fallback": response.generated_by_fallback,
+            "tx_hash": response.tx_hash,
             "all_signals": signals,
         })
 
@@ -304,6 +322,12 @@ async def aura_run(payload: AuraRequest | None = None) -> dict[str, Any]:
         print(f"[{_utc_now().isoformat()}] Step 3: generating strategy")
         generated = await run_strategy_generator(signals)
         strategy_spec_data = generated.get("strategy_spec") or {}
+        
+        if signals["decision_engine"]["proceed"]:
+            tx_hash = execute_strategy_on_chain(strategy_spec_data, generated.get("plain_english_brief") or "")
+        else:
+            tx_hash = None
+
         response = AuraResponse(
             status="trade_signal" if signals["decision_engine"]["proceed"] else "no_trade",
             plain_english_brief=generated.get("plain_english_brief") or "AURA fallback strategy generated.",
@@ -313,6 +337,7 @@ async def aura_run(payload: AuraRequest | None = None) -> dict[str, Any]:
             timestamp=_utc_now(),
             all_signals=signals,
             generated_by_fallback=bool(generated.get("generated_by_fallback")),
+            tx_hash=tx_hash if tx_hash and tx_hash.startswith("0x") else None,
         )
         print(f"[{_utc_now().isoformat()}] Pipeline completed in {time.perf_counter() - start:.2f}s")
         return response.model_dump()

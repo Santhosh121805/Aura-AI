@@ -52,6 +52,7 @@ class AuraResponse(BaseModel):
     timestamp: datetime
     all_signals: dict[str, Any] | None = None
     generated_by_fallback: bool | None = None
+    tx_hash: str | None = None
 
 
 class ErrorResponse(BaseModel):

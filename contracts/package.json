@@ -1,0 +1,19 @@
+{
+  "name": "aura-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for Aura AI BOT Chain Testnet integration",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.ts --network botchainTestnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}
