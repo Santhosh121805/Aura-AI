@@ -4,7 +4,7 @@
 
 A CMC Skill built on the CoinMarketCap Agent Hub and BNB Chain that turns live market and on-chain data into a single, backtestable trading decision. Six agents read narrative, sentiment, institutional flow, and macro data in parallel, reach consensus, and output either a strategy spec or a "preserve capital" call.
 
-Built for **BNB Hack — Track 2: Strategy Skills.**
+Built for **Common People to understand market noise **
 
 ---
 
