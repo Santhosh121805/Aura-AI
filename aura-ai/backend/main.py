@@ -254,14 +254,14 @@ async def _stream_pipeline() -> AsyncGenerator[str, None]:
             
             yield _sse_event("step", {
                 "step": "on_chain_publish",
-                "label": "BOT Chain Testnet",
+                "label": "BOT Chain Mainnet",
                 "detail": "Publishing strategy to smart contract...",
                 "status": "running",
             })
             tx_hash = execute_strategy_on_chain(strategy_spec_data, generated.get("plain_english_brief") or "")
             yield _sse_event("step", {
                 "step": "on_chain_publish",
-                "label": "BOT Chain Testnet",
+                "label": "BOT Chain Mainnet",
                 "detail": f"Tx Hash: {tx_hash}",
                 "status": "done",
             })

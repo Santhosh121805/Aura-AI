@@ -1,4 +1,4 @@
-"""Executor for publishing Aura strategies to BOT Chain Testnet."""
+"""Executor for publishing Aura strategies to BOT Chain Mainnet."""
 
 import json
 import os
@@ -25,10 +25,10 @@ REGISTRY_ABI = [
 
 def execute_strategy_on_chain(strategy_spec: Dict[str, Any], brief: str) -> str:
     """
-    Submits the strategy spec to the BOT Chain Testnet smart contract.
+    Submits the strategy spec to the BOT Chain Mainnet smart contract.
     Returns the transaction hash if successful, or an error string if not.
     """
-    rpc_url = os.getenv("BOT_CHAIN_RPC_URL")
+    rpc_url = os.getenv("BOT_CHAIN_RPC_URL", "https://rpc.botchain.ai")
     private_key = os.getenv("WALLET_PRIVATE_KEY")
     contract_address = os.getenv("REGISTRY_CONTRACT_ADDRESS")
     
