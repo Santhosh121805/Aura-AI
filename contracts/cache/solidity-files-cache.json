@@ -36,6 +36,42 @@
       "artifacts": [
         "AuraStrategyRegistry"
       ]
+    },
+    "C:\\Users\\Santhosh S\\Desktop\\Aura-AI\\contracts\\contracts\\AuraStrategyRegistryV2.sol": {
+      "lastModificationDate": 1786704759642,
+      "contentHash": "6e4495f786d4e700e84def30d0697c97",
+      "sourceName": "contracts/AuraStrategyRegistryV2.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AuraStrategyRegistryV2"
+      ]
     }
   }
 }

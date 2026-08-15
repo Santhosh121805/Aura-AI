@@ -66,3 +66,9 @@ BNB_DEFAULTS = {
 GEMINI_MODEL = "gemini-2.0-flash"
 GEMINI_MAX_TOKENS = 1500
 GEMINI_TEMPERATURE = 0.3
+
+# Legacy backend-signed on-chain publishing (uses WALLET_PRIVATE_KEY server-side).
+# Off by default: the supported way to publish a receipt is the connected-wallet
+# flow in the frontend (see AuraStrategyRegistryV2 + useWallet). This flag exists
+# only for local/ops use and must be explicitly opted into via env var.
+ENABLE_LEGACY_AUTO_PUBLISH_ENV = "ENABLE_LEGACY_AUTO_PUBLISH"

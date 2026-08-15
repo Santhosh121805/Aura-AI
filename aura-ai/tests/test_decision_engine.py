@@ -104,5 +104,79 @@ def test_decision_engine_sector_detection():
     assert "AI" in result["regime_label"]
 
 
+def test_decision_engine_watch_outcome():
+    """When exactly 2 signals agree, the engine returns 'watch' instead of 'no_trade'."""
+    signals = {
+        "narrative": {"is_positive": True},
+        "sentiment": {"is_positive": True},
+        "capital_flow": {"is_positive": False},
+        "macro": {"is_positive": False},
+        "risk": {"is_positive": False, "safe_to_trade": False},
+        "strategy": {"sector": "RWA"},
+    }
+
+    result = run_decision_engine(
+        signals["narrative"],
+        signals["sentiment"],
+        signals["capital_flow"],
+        signals["macro"],
+        signals["risk"],
+        signals["strategy"],
+    )
+
+    assert result["proceed"] is False
+    assert result["outcome"] == "watch"
+    assert result["agreement_count"] == 2
+
+
+def test_decision_engine_no_trade_outcome():
+    """When fewer than 2 signals agree, outcome is 'no_trade'."""
+    signals = {
+        "narrative": {"is_positive": True},
+        "sentiment": {"is_positive": False},
+        "capital_flow": {"is_positive": False},
+        "macro": {"is_positive": False},
+        "risk": {"is_positive": False, "safe_to_trade": False},
+        "strategy": {"sector": "RWA"},
+    }
+
+    result = run_decision_engine(
+        signals["narrative"],
+        signals["sentiment"],
+        signals["capital_flow"],
+        signals["macro"],
+        signals["risk"],
+        signals["strategy"],
+    )
+
+    assert result["proceed"] is False
+    assert result["outcome"] == "no_trade"
+    assert result["agreement_count"] == 1
+
+
+def test_decision_engine_trade_signal_outcome():
+    """When proceed is True, outcome is 'trade_signal'."""
+    signals = {
+        "narrative": {"is_positive": True},
+        "sentiment": {"is_positive": True},
+        "capital_flow": {"is_positive": True},
+        "macro": {"is_positive": True},
+        "risk": {"is_positive": True, "safe_to_trade": True},
+        "strategy": {"sector": "RWA"},
+    }
+
+    result = run_decision_engine(
+        signals["narrative"],
+        signals["sentiment"],
+        signals["capital_flow"],
+        signals["macro"],
+        signals["risk"],
+        signals["strategy"],
+    )
+
+    assert result["proceed"] is True
+    assert result["outcome"] == "trade_signal"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

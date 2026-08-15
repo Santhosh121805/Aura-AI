@@ -2,5 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { AuraStrategyRegistry } from "./AuraStrategyRegistry";
+export type { AuraStrategyRegistryV2 } from "./AuraStrategyRegistryV2";
 export * as factories from "./factories";
 export { AuraStrategyRegistry__factory } from "./factories/AuraStrategyRegistry__factory";
+export { AuraStrategyRegistryV2__factory } from "./factories/AuraStrategyRegistryV2__factory";

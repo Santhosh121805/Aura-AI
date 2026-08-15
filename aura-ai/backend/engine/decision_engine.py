@@ -42,8 +42,18 @@ def run_decision_engine(narrative: dict[str, Any] | None, sentiment: dict[str, A
         regime_label = "Mixed signals — no clear rotation"
 
     wait_message = None if proceed else "Signal agreement below threshold. Wait for cleaner alignment before rotating capital."
+
+    # Determine the publishable outcome label.
+    if proceed:
+        outcome = "trade_signal"
+    elif agreement_count >= 2:
+        outcome = "watch"
+    else:
+        outcome = "no_trade"
+
     return {
         "proceed": proceed,
+        "outcome": outcome,
         "confidence_level": confidence_level,
         "confidence_score": int(confidence_score),
         "agreement_count": agreement_count,

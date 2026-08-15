@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -44,7 +44,7 @@ class StrategySpec(BaseModel):
 class AuraResponse(BaseModel):
     """Top-level response for the strategy pipeline."""
 
-    status: str
+    status: Literal["trade_signal", "watch", "no_trade"]
     plain_english_brief: str
     strategy_spec: StrategySpec
     confidence_score: int = Field(ge=0, le=100)
@@ -53,6 +53,12 @@ class AuraResponse(BaseModel):
     all_signals: dict[str, Any] | None = None
     generated_by_fallback: bool | None = None
     tx_hash: str | None = None
+    """Legacy field: only populated when ENABLE_LEGACY_AUTO_PUBLISH=true."""
+    decision_hash: str | None = None
+    """Deterministic hash of (recommendation, reasoning, confidenceScore, plainEnglishBrief),
+    computed the same way AuraStrategyRegistryV2 computes it on-chain. The frontend
+    passes the underlying fields to the wallet-connected publish call; this hash is
+    provided so the UI/tests can verify what will be stored before signing."""
 
 
 class ErrorResponse(BaseModel):

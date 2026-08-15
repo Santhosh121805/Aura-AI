@@ -5,8 +5,11 @@
   "main": "index.js",
   "scripts": {
     "compile": "hardhat compile",
+    "test": "hardhat test",
     "deploy": "hardhat run scripts/deploy.ts --network botchainTestnet",
-    "deploy:mainnet": "hardhat run scripts/deploy.ts --network botchainMainnet"
+    "deploy:mainnet": "hardhat run scripts/deploy.ts --network botchainMainnet",
+    "deploy:v2:testnet": "hardhat run scripts/deploy_v2.ts --network botchainTestnet",
+    "deploy:v2:mainnet": "hardhat run scripts/deploy_v2.ts --network botchainMainnet"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",

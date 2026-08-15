@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import time
 from datetime import datetime, timezone
 from typing import Any, AsyncGenerator
@@ -23,10 +24,31 @@ from backend.agents.risk_agent import run_risk_agent
 from backend.agents.sentiment_agent import run_sentiment_agent
 from backend.agents.strategy_agent import run_strategy_agent
 from backend.data_fetcher import fetch_all_data
+from backend.decision_hash import compute_decision_hash
 from backend.engine.decision_engine import run_decision_engine
 from backend.engine.strategy_generator import run_strategy_generator
 from backend.executor import execute_strategy_on_chain
 from backend.models import AuraRequest, AuraResponse, ErrorResponse, StrategySpec
+
+
+def _legacy_auto_publish_enabled() -> bool:
+    """Legacy flow: backend signs and submits with WALLET_PRIVATE_KEY.
+
+    Off by default. The supported way to publish a Decision Receipt is the
+    connected-wallet flow in the frontend, which lets any reviewer's own
+    wallet sign the transaction against AuraStrategyRegistryV2 — no server
+    private key involved. This flag is kept only for optional local/ops use.
+    """
+    return os.getenv(config.ENABLE_LEGACY_AUTO_PUBLISH_ENV, "false").strip().lower() in ("1", "true", "yes")
+
+
+def _decision_hash_for(strategy_spec_data: dict[str, Any], plain_english_brief: str) -> str:
+    return compute_decision_hash(
+        recommendation=str(strategy_spec_data.get("recommendation", "")),
+        reasoning=str(strategy_spec_data.get("reasoning", "")),
+        confidence_score=int(strategy_spec_data.get("confidence_score") or 0),
+        plain_english_brief=plain_english_brief,
+    )
 
 app = FastAPI(title=config.APP_NAME, version=config.APP_VERSION)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
@@ -241,7 +263,9 @@ async def _stream_pipeline() -> AsyncGenerator[str, None]:
             "decision_engine": decision,
         }
 
-        # Step 9: Strategy Generator (Gemini)
+        outcome = decision.get("outcome", "no_trade")
+
+        # Step 9: Strategy Generator (Gemini) — runs for all outcomes
         if decision.get("proceed"):
             yield _sse_event("step", {
                 "step": "strategy_generator",
@@ -251,24 +275,27 @@ async def _stream_pipeline() -> AsyncGenerator[str, None]:
             })
             generated = await run_strategy_generator(signals)
             strategy_spec_data = generated.get("strategy_spec") or {}
-            
-            yield _sse_event("step", {
-                "step": "on_chain_publish",
-                "label": "BOT Chain Mainnet",
-                "detail": "Publishing strategy to smart contract...",
-                "status": "running",
-            })
-            tx_hash = execute_strategy_on_chain(strategy_spec_data, generated.get("plain_english_brief") or "")
-            yield _sse_event("step", {
-                "step": "on_chain_publish",
-                "label": "BOT Chain Mainnet",
-                "detail": f"Tx Hash: {tx_hash}",
-                "status": "done",
-            })
+            plain_english_brief = generated.get("plain_english_brief") or ""
+
+            tx_hash = None
+            if _legacy_auto_publish_enabled():
+                yield _sse_event("step", {
+                    "step": "on_chain_publish",
+                    "label": "BOTChain Mainnet (legacy auto-publish)",
+                    "detail": "Publishing strategy to smart contract...",
+                    "status": "running",
+                })
+                tx_hash = execute_strategy_on_chain(strategy_spec_data, plain_english_brief)
+                yield _sse_event("step", {
+                    "step": "on_chain_publish",
+                    "label": "BOTChain Mainnet (legacy auto-publish)",
+                    "detail": f"Tx Hash: {tx_hash}",
+                    "status": "done",
+                })
 
             response = AuraResponse(
                 status="trade_signal",
-                plain_english_brief=generated.get("plain_english_brief") or "AURA fallback strategy generated.",
+                plain_english_brief=plain_english_brief or "AURA fallback strategy generated.",
                 strategy_spec=StrategySpec(**strategy_spec_data),
                 confidence_score=int(strategy_spec_data.get("confidence_score") or decision["confidence_score"]),
                 regime_label=decision["regime_label"],
@@ -278,9 +305,11 @@ async def _stream_pipeline() -> AsyncGenerator[str, None]:
                 tx_hash=tx_hash if tx_hash and tx_hash.startswith("0x") else None,
             )
         else:
+            strategy_spec_data = {}
+            plain_english_brief = decision.get("wait_message") or "Signal agreement below threshold."
             response = AuraResponse(
-                status="no_trade",
-                plain_english_brief=decision.get("wait_message") or "Signal agreement below threshold.",
+                status=outcome,
+                plain_english_brief=plain_english_brief,
                 strategy_spec=StrategySpec(),
                 confidence_score=decision["confidence_score"],
                 regime_label=decision["regime_label"],
@@ -288,6 +317,11 @@ async def _stream_pipeline() -> AsyncGenerator[str, None]:
                 all_signals=signals,
                 generated_by_fallback=False,
             )
+
+        # Always compute decision_hash for every completed outcome so the
+        # frontend can publish a Decision Receipt for any result.
+        decision_hash = _decision_hash_for(strategy_spec_data, plain_english_brief)
+        response.decision_hash = decision_hash
 
         elapsed = round(time.perf_counter() - start, 2)
         yield _sse_event("complete", {
@@ -299,6 +333,7 @@ async def _stream_pipeline() -> AsyncGenerator[str, None]:
             "elapsed_seconds": elapsed,
             "generated_by_fallback": response.generated_by_fallback,
             "tx_hash": response.tx_hash,
+            "decision_hash": response.decision_hash,
             "all_signals": signals,
         })
 
@@ -319,26 +354,48 @@ async def aura_run(payload: AuraRequest | None = None) -> dict[str, Any]:
         start = time.perf_counter()
         _ = payload
         signals = await _run_signal_pipeline()
-        print(f"[{_utc_now().isoformat()}] Step 3: generating strategy")
-        generated = await run_strategy_generator(signals)
-        strategy_spec_data = generated.get("strategy_spec") or {}
-        
-        if signals["decision_engine"]["proceed"]:
-            tx_hash = execute_strategy_on_chain(strategy_spec_data, generated.get("plain_english_brief") or "")
-        else:
-            tx_hash = None
+        decision = signals["decision_engine"]
+        outcome = decision.get("outcome", "no_trade")
 
-        response = AuraResponse(
-            status="trade_signal" if signals["decision_engine"]["proceed"] else "no_trade",
-            plain_english_brief=generated.get("plain_english_brief") or "AURA fallback strategy generated.",
-            strategy_spec=StrategySpec(**strategy_spec_data),
-            confidence_score=int(strategy_spec_data.get("confidence_score") or signals["decision_engine"]["confidence_score"]),
-            regime_label=signals["decision_engine"]["regime_label"],
-            timestamp=_utc_now(),
-            all_signals=signals,
-            generated_by_fallback=bool(generated.get("generated_by_fallback")),
-            tx_hash=tx_hash if tx_hash and tx_hash.startswith("0x") else None,
-        )
+        if decision["proceed"]:
+            print(f"[{_utc_now().isoformat()}] Step 3: generating strategy")
+            generated = await run_strategy_generator(signals)
+            strategy_spec_data = generated.get("strategy_spec") or {}
+            plain_english_brief = generated.get("plain_english_brief") or ""
+
+            tx_hash = None
+            if _legacy_auto_publish_enabled():
+                tx_hash = execute_strategy_on_chain(strategy_spec_data, plain_english_brief)
+
+            response = AuraResponse(
+                status="trade_signal",
+                plain_english_brief=plain_english_brief or "AURA fallback strategy generated.",
+                strategy_spec=StrategySpec(**strategy_spec_data),
+                confidence_score=int(strategy_spec_data.get("confidence_score") or decision["confidence_score"]),
+                regime_label=decision["regime_label"],
+                timestamp=_utc_now(),
+                all_signals=signals,
+                generated_by_fallback=bool(generated.get("generated_by_fallback")),
+                tx_hash=tx_hash if tx_hash and tx_hash.startswith("0x") else None,
+            )
+        else:
+            strategy_spec_data = {}
+            plain_english_brief = decision.get("wait_message") or "Signal agreement below threshold."
+            response = AuraResponse(
+                status=outcome,
+                plain_english_brief=plain_english_brief,
+                strategy_spec=StrategySpec(),
+                confidence_score=decision["confidence_score"],
+                regime_label=decision["regime_label"],
+                timestamp=_utc_now(),
+                all_signals=signals,
+                generated_by_fallback=False,
+            )
+
+        # Always compute decision_hash for every completed outcome.
+        decision_hash = _decision_hash_for(strategy_spec_data, plain_english_brief)
+        response.decision_hash = decision_hash
+
         print(f"[{_utc_now().isoformat()}] Pipeline completed in {time.perf_counter() - start:.2f}s")
         return response.model_dump()
     except Exception as exc:  # pragma: no cover - API safety net

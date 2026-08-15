@@ -17,23 +17,41 @@ declare module "hardhat/types/runtime" {
       name: "AuraStrategyRegistry",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AuraStrategyRegistry__factory>;
+    getContractFactory(
+      name: "AuraStrategyRegistryV2",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AuraStrategyRegistryV2__factory>;
 
     getContractAt(
       name: "AuraStrategyRegistry",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
     ): Promise<Contracts.AuraStrategyRegistry>;
+    getContractAt(
+      name: "AuraStrategyRegistryV2",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AuraStrategyRegistryV2>;
 
     deployContract(
       name: "AuraStrategyRegistry",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.AuraStrategyRegistry>;
+    deployContract(
+      name: "AuraStrategyRegistryV2",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AuraStrategyRegistryV2>;
 
     deployContract(
       name: "AuraStrategyRegistry",
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.AuraStrategyRegistry>;
+    deployContract(
+      name: "AuraStrategyRegistryV2",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AuraStrategyRegistryV2>;
 
     // default types
     getContractFactory(
