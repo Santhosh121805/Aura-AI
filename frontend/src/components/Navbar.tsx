@@ -57,13 +57,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenReceipts, onOpenDocs, onSc
           </button>
         </nav>
 
-        {/* Right: network + wallet */}
+        {/* Right: wallet */}
         <div className="flex items-center gap-2">
-          <span className="hidden sm:flex items-center gap-1.5 text-xs text-[#F3F1EA]/50 font-data">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#31E6A1]" aria-hidden="true" />
-            BOTChain {BOTCHAIN_CONFIG.chainId}
-          </span>
-
           {isWrongChain && (
             <button
               onClick={switchToBotchain}
