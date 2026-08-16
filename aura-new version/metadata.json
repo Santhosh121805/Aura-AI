@@ -1,0 +1,6 @@
+{
+  "name": "AURA-AI — Autonomous Capital Intelligence",
+  "description": "Explainable AI investment committee for on-chain treasury decisions with six-agent real-time consensus and BOTChain verification.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
