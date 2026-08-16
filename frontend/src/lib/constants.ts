@@ -2,6 +2,12 @@ import { AgentStatusState } from '../types';
 
 export const VIDEO_CONFIG = {
   url: "https://res.cloudinary.com/dzucladtl/video/upload/v1786856676/WhatsApp_Video_2026-08-16_at_10.32.45_AM_reremi.mp4",
+  // Cloudinary transcodes on-the-fly for this extension (uncached, no range
+  // support — verified via curl: "Cache-Control: private, no-cache, no-store").
+  // Kept as a secondary <source> for format coverage, but mp4 is listed first
+  // since it's the pre-cached, range-enabled asset every evergreen browser
+  // already supports natively.
+  webmUrl: "https://res.cloudinary.com/dzucladtl/video/upload/v1786856676/WhatsApp_Video_2026-08-16_at_10.32.45_AM_reremi.webm",
   poster: "https://res.cloudinary.com/dzucladtl/video/upload/v1786856676/WhatsApp_Video_2026-08-16_at_10.32.45_AM_reremi.jpg",
   autoplay: true,
   muted: true,
