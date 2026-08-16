@@ -1,0 +1,15 @@
+node_modules
+dist
+dist-ssr
+*.local
+
+# Environment variables (only VITE_ vars belong here — never a private key)
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
